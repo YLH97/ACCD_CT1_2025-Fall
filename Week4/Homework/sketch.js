@@ -25,11 +25,11 @@ function draw() {
   background(0, 20);
   fill(255);
 
-  ellipse(x, y, 80, 80);
+  ellipse(x, y, 130, 130);
   image(currentimage, x - r, y - r, diameter, diameter);
 
-  x += random(-30, 30);
-  y += random(-30, 30);
+  x += random(-25, 25);
+  y += random(-25, 25);
 
 if (x + r > width) {
   x = width - (x + r - width) - r;
