@@ -1,4 +1,60 @@
-let posX, posY, velX, velY;
+let x, y;
+let diameter = 80
+let r = diameter / 2;
+let imglebu, imagelebubu, currentimage
+
+function preload() {
+  imglebu = loadImage('lebubu.png');
+  imagelebubu = loadImage('lebubu.png');
+}
+
+function setup() {
+  createCanvas(600, 600);
+  x = width / 2;
+  y = height / 2;
+
+  currentimage = imglebu;
+}
+
+function draw() {
+  background(0, 20); // fade trail
+  fill(255);
+
+  ellipse(x, y, 80, 80);
+  image(currentimage, x - r, y - r, diameter, diameter);
+
+  x += random(-20, 20);
+  y += random(-20, 20);
+
+if (x + r > width) {
+  x = width - (x + r - width) - r;
+  currentimage = imagelebubu;
+  countDown = 16
+}
+if (x - r < 0) {
+  x = r - (x - r);
+  currentimage = imagelebubu;
+  countDown = 16
+} 
+if (y + r > height) {
+  y = height - (y + r - height) - r;
+  currentimage = imagelebubu;
+  countDown = 16
+}
+if (y - r < 0){
+  y = r - (y - r);
+  currentimage = imagelebubu;
+  countDown = 16
+}
+if (countDown > 0) {
+  countDown--;
+}
+else {
+  currentimage = imglebu;
+}
+}
+
+/*let posX, posY, velX, velY;
 let diameter = 60;
 let yellow, bgColor;
 let mySound, amp;
@@ -47,7 +103,7 @@ function draw() {
     posY = constrain(posY, size/2, height - size/2);
     velY *= -1;
   }
-}
+}*/
 
 
 /*let posX, posY, velX, velY;
