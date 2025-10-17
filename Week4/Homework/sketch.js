@@ -4,6 +4,58 @@ let yellow, bgColor;
 let mySound, amp;
 
 function preload() {
+  mySound = loadSound("JBS.mp3");
+}
+
+function setup() {
+  createCanvas(800, 600);
+
+  yellow = color(255, 204, 0);
+  bgColor = color(0,5);
+  noStroke();
+
+  posX = width / 2;
+  posY = height / 2;
+
+  velX = random(-5, 5);
+  velY = random(-5, 5);
+
+  amp = new p5.Amplitude();
+
+  mySound.loop();
+}
+
+function draw() {
+  background(bgColor);
+  fill(yellow);
+
+  let level = amp.getLevel();
+
+  let speed = map(level, 0, 0.3, 1, 10);
+
+  posX += random(-speed, speed);
+  posY += random(-speed, speed);
+
+  let size = diameter + level * 500;
+  circle(posX, posY, size);
+
+  if (posX + diameter/2 >= width || posX - size/2 <= 0) {
+    posX = constrain(posX, size/2, width - size/2);
+    velX *= -1;
+  }
+  if (posY + diameter/2 >= height || posY - size/2 <= 0) {
+    posY = constrain(posY, size/2, height - size/2);
+    velY *= -1;
+  }
+}
+
+
+/*let posX, posY, velX, velY;
+let diameter = 60;
+let yellow, bgColor;
+let mySound, amp;
+
+function preload() {
   // Use your local file:
   mySound = loadSound('JBS.mp3');
 
@@ -89,60 +141,5 @@ function mousePressed() {
   }
   if (!mySound.isPlaying()) {
     mySound.loop();
-  }
-}
-
-
-/*let posX, posY, velX, velY;
-let diameter = 60;
-let yellow, bgColor;
-let mySound, amp;
-
-function preload() {
-  // Load your music file (put the correct name here)
-  mySound = loadSound(JBS.mp3）;
-}
-
-function setup() {
-  createCanvas(800, 600);
-
-  yellow = color(255, 204, 0);
-  bgColor = color(0,5);
-  noStroke();
-
-  posX = width / 2;
-  posY = height / 2;
-
-  velX = random(-5, 5);
-  velY = random(-5, 5);
-
-  amp = new p5.Amplitude();
-
-  mySound.loop();
-}
-
-function draw() {
-  background(bgColor);
-  fill(yellow);
-
-    // get volume level (0.0 → 1.0)
-  let level = amp.getLevel();
-
-  // map the volume to a movement factor
-  let speed = map(level, 0, 0.3, 1, 10);
-
-  posX += random(-speed, speed);
-  posY += random(-speed, speed);
-
-  let size = diameter + level * 500;
-  circle(posX, posY, size);
-
-  if (posX + diameter/2 >= width || posX - size/2 <= 0) {
-    posX = constrain(posX, size/2, width - size/2);
-    velX *= -1;
-  }
-  if (posY + diameter/2 >= height || posY - size/2 <= 0) {
-    posY = constrain(posY, size/2, height - size/2);
-    velY *= -1;
   }
 }*/
