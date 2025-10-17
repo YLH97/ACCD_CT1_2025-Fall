@@ -14,7 +14,10 @@ function preload() {
 
 function setup() {
   createCanvas(600, 600);
+
   bgm.loop(); 
+  bgm.setVolume(0.5)
+
   x = width / 2;
   y = height / 2;
 
