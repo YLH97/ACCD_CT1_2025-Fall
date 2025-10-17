@@ -9,7 +9,7 @@ function preload() {
   imglebu = loadImage('lebubu.png');
   imagelebubu = loadImage('lebu.png');
   
-  bgm = loadSound('You Are My Sunshine.mp3');  // put your file in the same folder
+  bgm = loadSound('You Are My Sunshine.mp3');
 }
 
 function setup() {
@@ -22,7 +22,7 @@ function setup() {
 }
 
 function draw() {
-  background(0, 20); // fade trail
+  background(0, 20);
   fill(255);
 
   ellipse(x, y, 80, 80);
