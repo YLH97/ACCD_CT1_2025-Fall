@@ -28,9 +28,10 @@ function mousePressed() {
 }
 
 function draw() {
-  background(0, 20);
+  background(0, 5);
   fill(255);
-
+  noStroke();
+  
   ellipse(x, y, 130, 130);
   image(currentimage, x - r, y - r, diameter, diameter);
 
