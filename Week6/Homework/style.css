@@ -1,0 +1,29 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.left-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.right-content {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  padding: 20px;
+}
+
+canvas {
+  display: block;
+}
