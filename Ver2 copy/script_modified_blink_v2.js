@@ -1471,18 +1471,20 @@ scene.add(group);
     // === FLOATING OBJECTS (cup, remote, boo, vas) ===
     const floatingLoader = new GLTFLoader();
     const floatingModels = [
-      { path: 'models/1_cup.glb', min: 4, max: 6 },
-      { path: 'models/1_remote.glb', min: 4, max: 6 },
-      { path: 'models/1_boo.glb', min: 4, max: 6 },
-      { path: 'models/1_vas.glb', min: 4, max: 6 }
+      { path: 'models/1_cup.glb', min: 4, max: 5 },
+      { path: 'models/1_remote.glb', min: 4, max: 5 },
+      { path: 'models/1_pain.glb', min: 4, max: 5 },
+      { path: 'models/1_boo.glb', min: 4, max: 5 },
+      { path: 'models/1_vas.glb', min: 4, max: 5 }
     ];
     
     // Size multipliers for each model (adjust these to control sizes)
     const floatingModelSizes = {
-      'models/1_cup.glb': 1.1,      // 100% of base size
-      'models/1_remote.glb': 1.1,     // 80% of base size
+      'models/1_cup.glb': 0.9,      
+      'models/1_remote.glb': 0.8,     // 80% of base size
+      'models/1_pain.glb': 1.1,     // added pain model size multiplier
       'models/1_boo.glb': 1.1,      // 100% of base size
-      'models/1_vas.glb': 1.8       // 100% of base size
+      'models/1_vas.glb': 1.9       // 100% of base size
     };
 
     floatingModels.forEach(({ path, min, max }) => {
@@ -1971,10 +1973,11 @@ scene.add(group);
     // === FLOATING TABLEWARE (plates, cups, bottles) ===
     const tablewareLoader = new GLTFLoader();
     const tablewareModels = [
-      { path: 'models/2_plate.glb', min: 4, max: 6 },
-      { path: 'models/2_knife.glb', min: 4, max: 6 },
-      { path: 'models/2_bottle.glb', min: 4, max: 6 },
-      { path: 'models/2_spoon.glb', min: 4, max: 6 }
+      { path: 'models/2_plate.glb', min: 4, max: 5 },
+      { path: 'models/2_knife.glb', min: 4, max: 5 },
+      { path: 'models/2_bottle.glb', min: 4, max: 5 },
+      { path: 'models/2_spoon.glb', min: 4, max: 5 },
+      { path: 'models/2_chip.glb', min: 4, max: 5 },
     ];
     
     // Size multipliers for each model (adjust these to control sizes)
@@ -1983,6 +1986,7 @@ scene.add(group);
       'models/2_knife.glb': 1.2,    // 90% of base size
       'models/2_bottle.glb': 1.2,   // 110% of base size
       'models/2_spoon.glb': 1.2,    // 80% of base size
+      'models/2_chip.glb': 1.2,    // 80% of base size
     };
 
     tablewareModels.forEach(({ path, min, max }) => {
@@ -3395,18 +3399,20 @@ scene.add(group);
     // === FLOATING OBJECTS (5_pen, 5_mou, 5_tra, 5_cof) ===
     const floatingLoader4 = new GLTFLoader();
     const floatingModels4 = [
-      { path: 'models/5_pen.glb', min: 4, max: 6 },
-      { path: 'models/5_mou.glb', min: 4, max: 6 },
-      { path: 'models/5_tra.glb', min: 4, max: 6 },
-      { path: 'models/5_cof.glb', min: 4, max: 6 }
+      { path: 'models/5_pen.glb', min: 4, max: 5 },
+      { path: 'models/5_mou.glb', min: 4, max: 5 },
+      { path: 'models/5_tra.glb', min: 4, max: 5 },
+      { path: 'models/5_cof.glb', min: 4, max: 5 },
+      { path: 'models/5_note.glb', min: 4, max: 5 }
     ];
     
     // Size multipliers for each model (adjust these to control sizes)
     const floatingModelSizes4 = {
-      'models/5_pen.glb': 1.2,
-      'models/5_mou.glb': 1.0,
-      'models/5_tra.glb': 1.8,
-      'models/5_cof.glb': 0.8
+      'models/5_pen.glb': 0.9,
+      'models/5_mou.glb': 0.9,
+      'models/5_tra.glb': 1.4,
+      'models/5_cof.glb': 0.5,
+      'models/5_note.glb': 0.7
     };
 
     floatingModels4.forEach(({ path, min, max }) => {
@@ -3549,16 +3555,16 @@ scene.add(group);
     // === FLOATING OBJECTS (6_bas, 6_bottle, 6_sho) ===
     const floatingLoader5 = new GLTFLoader();
     const floatingModels5 = [
-      { path: 'models/6_bas.glb', min: 7, max: 10 },
-      { path: 'models/6_bottle.glb', min: 7 , max: 10 },
-      { path: 'models/6_sho.glb', min: 7, max: 10 }
+      { path: 'models/6_bas.glb', min: 8, max: 10 },
+      { path: 'models/6_bottle.glb', min: 8 , max: 10 },
+      { path: 'models/6_sho.glb', min: 8, max: 10 }
     ];
     
     // Size multipliers for each model (adjust these to control sizes)
     const floatingModelSizes5 = {
       'models/6_bas.glb': 1.1,
       'models/6_bottle.glb': 0.9,
-      'models/6_sho.glb': 1.2
+      'models/6_sho.glb': 1.1
     };
 
     floatingModels5.forEach(({ path, min, max }) => {
@@ -3713,22 +3719,15 @@ let targetSection = 0.0;        // Target section (can be fractional during tran
 let targetCamZ = cameraBaseZ - 0 * SECTION_DISTANCE;
 
 // === SMOOTH SECTION TRANSITION SETTINGS ===
-const SECTION_TRANSITION_SPEED = 0.12;  // Speed of section interpolation (increased for smoother transitions)
-const SECTION_FADE_DISTANCE = 2.0;      // Increased fade distance for smoother crossfades
+const SECTION_TRANSITION_SPEED = 0.2;  // Speed of section interpolation (increased for smoother transitions)
+const SECTION_FADE_DISTANCE = 5.0;      // Increased fade distance for smoother crossfades
 
-// === CAMERA MOVEMENT SPEED CONTROLS (Adjustable) ===
-// 
-// HOW TO ADJUST:
-// - Lower values = slower, more cinematic movement
-// - Higher values = faster, more responsive movement
-// - Recommended range: 0.01 (very slow) to 0.1 (fast)
-//
 // Internal waypoint movement speed (within a section)
 const CAMERA_WAYPOINT_SPEED = 0.01;  // Lower = slower (default: 0.04, was 0.08)
 // Section transition speed (between sections) - this controls the main transition feel
-const CAMERA_TRANSITION_SPEED = 0.05;  // Lower = slower (default: 0.02, was 0.08)
+const CAMERA_TRANSITION_SPEED = 0.08;  // Lower = slower (default: 0.02, was 0.08)
 // LookAt interpolation speed
-const CAMERA_LOOKAT_SPEED = 0.2;  // Lower = slower lookAt changes (default: 0.05)
+const CAMERA_LOOKAT_SPEED = 0.7;  // Lower = slower lookAt changes (default: 0.05)
 
 // === GEOMETRY ROTATION SPEED CONTROLS (Adjustable) ===
 // 
