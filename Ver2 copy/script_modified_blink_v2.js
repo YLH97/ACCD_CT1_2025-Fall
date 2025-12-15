@@ -629,13 +629,13 @@ const boxGeo = new THREE.BoxGeometry(2.5, 2.5, 2.5, 4, 4, 4);
 // === SECTION 0 WATCHER BALLS (single white sphere + inner visual unit) ===
 // Adjustable sizes, colors, and count
 
-const BODY_RADIUS = 0.45;           // Outer white sphere radius (remains unchanged, no blink)
+const BODY_RADIUS = 0.43;           // Outer white sphere radius (remains unchanged, no blink)
 const IRIS_RADIUS = 0.30;          // Outer colored circle radius (inner visual unit)
 const PUPIL_RADIUS = 0.1;         // Inner black circle radius (inner visual unit)
 let WATCHER_BODY_COLOR = 0xffffff; // Outer sphere color
 let WATCHER_IRIS_COLOR = 0x6b4f3a; // Iris color
 let WATCHER_PUPIL_COLOR = 0x111111; // Pupil color (black/dark)
-let WATCHER_COUNT = 8; // adjustable number of watchers
+let WATCHER_COUNT = 12; // adjustable number of watchers
 // Box spawn volume (keeps them inside the room and visible)
 const WATCHER_BOX = {
   xMin: -10, xMax: 10,
