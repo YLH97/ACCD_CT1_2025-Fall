@@ -1,82 +1,117 @@
-let fishes = [];
+let pets = [];
 let foods = [];
 
 function setup() {
-  let canvas = createCanvas(600, 400);
-  canvas.parent('canvas-container');
-  for (let i = 0; i < 5; i++) {
-    fishes.push(new Fish(random(width), random(height)));
+  createCanvas(800, 600);
+
+  for (let i = 0; i < 10; i++) {
+    pets.push(new Pet(random(width), random(height)));
   }
 }
 
 function draw() {
-  background(100, 180, 255);
+  background(20);
 
-  for (let food of foods) {
-    food.display();
+  for (let i = foods.length - 1; i >= 0; i--) {
+    foods[i].show();
+    if (foods[i].eaten) foods.splice(i, 1);
   }
 
-  for (let fish of fishes) {
-    fish.move();
-    fish.checkFood(foods);
-    fish.display();
+  for (let p of pets) {
+    p.move();
+    p.chase(foods);
+    p.eat(foods);   
+    p.show();
   }
-
-  foods = foods.filter(food => !food.eaten);
 }
 
 function mousePressed() {
   foods.push(new Food(mouseX, mouseY));
 }
 
-class Fish {
+class Pet {
   constructor(x, y) {
-    this.pos = createVector(x, y);
-    this.vel = p5.Vector.random2D().mult(1.2);
-    this.size = 20;
+    this.x = x;
+    this.y = y;
+
+    this.vx = random(-2, 2);
+    this.vy = random(-2, 2);
+
+    this.size = 18;
   }
 
-  move() {
-    this.pos.add(this.vel);
-    // bounce off walls
-    if (this.pos.x < 0 || this.pos.x > width) this.vel.x *= -1;
-    if (this.pos.y < 0 || this.pos.y > height) this.vel.y *= -1;
+ move() {
+ 
+  this.vx += random(-0.04, 0.04);
+  this.vy += random(-0.04, 0.04);
+
+  this.x += this.vx;
+  this.y += this.vy;
+
+ 
+  let maxSpeed = 0.8;
+  this.vx = constrain(this.vx, -maxSpeed, maxSpeed);
+  this.vy = constrain(this.vy, -maxSpeed, maxSpeed);
+
+  
+  if (this.x < 0 || this.x > width) this.vx *= -1;
+  if (this.y < 0 || this.y > height) this.vy *= -1;
+}
+
+  chase(foods) {
+    let closest = null;
+    let closestDist = 99999;
+
+    for (let f of foods) {
+      if (f.eaten) continue;
+
+      let d = dist(this.x, this.y, f.x, f.y);
+      if (d < closestDist) {
+        closestDist = d;
+        closest = f;
+      }
+    }
+
+    if (closest) {
+      let dx = closest.x - this.x;
+      let dy = closest.y - this.y;
+
+      this.vx += dx * 0.0005;
+      this.vy += dy * 0.0005;
+    }
   }
 
-  checkFood(foodArray) {
-    for (let food of foodArray) {
-      let d = dist(this.pos.x, this.pos.y, food.pos.x, food.pos.y);
-      if (d < this.size / 2 + food.size / 2) {
-      
-        this.size += 3;     
-        food.eaten = true;   
+  eat(foods) {
+    for (let f of foods) {
+      if (f.eaten) continue;
+
+      let d = dist(this.x, this.y, f.x, f.y);
+      if (d < this.size / 2 + f.size / 2) {
+        f.eaten = true;
+        this.size += 3;
       }
     }
   }
 
-  display() {
-    push();
-    translate(this.pos.x, this.pos.y);
-    rotate(this.vel.heading());
+  show() {
     noStroke();
-    fill(255, 150, 50);
-    triangle(-this.size / 2, -this.size / 3,
-             -this.size / 2,  this.size / 3,
-              this.size / 2,  0);
-    pop();
+    fill(180, 200, 255);
+    rectMode(CENTER);
+    rect(this.x, this.y, this.size, this.size);
   }
 }
 
 class Food {
   constructor(x, y) {
-    this.pos = createVector(x, y);
-    this.size = 8;
+    this.x = x;
+    this.y = y;
+    this.size = 12;
     this.eaten = false;
   }
 
-  display() {
-    fill(255, 230, 100);
+  show() {
     noStroke();
-    ellipse(this.pos.x, this.pos.y, this.size);
+    fill(255, 120, 120);
+    ellipse(this.x, this.y, this.size);
   }
 }

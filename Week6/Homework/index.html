@@ -12,23 +12,65 @@
     <script src="libraries/p5.sound.min.js"></script>
   </head>
 
-  <body>
-    <div class="container">
-      <div class="left-content">
-        <h1>Week6: Interactive System with UI</h1>
-        <h2>Step 1: Basic Setup & Fish Class</h2>
-        <p>Start with this minimal version. It sets up the canvas and creates fish that move and bounce off walls.</p>
-        <img src="img/01.png" alt="Description of image" width="300">
-        <h2>Step 2: Add Food System</h2>
-        <p>Add the foods array, the Food class, and mousePressed() to click and add food.</p>
-        <img src="img/02.png" alt="Description of image" width="600">
-        <h2>Step 3: Add Eating & Growth</h2>
-        <p>Add collision detection so fish can eat food and grow.</p>
-        <img src="img/03.png" alt="Description of image" width="600">
-      </div>
-      <div class="right-content" id="canvas-container">
-        <script src="sketch.js"></script>
-      </div>
-    </div>
+   <body>
+    <h1>Interactive System with UI</h1>
+
+    <h2>Intent</h2>
+    <p>
+  I built a simple interactive system using object-oriented programming. In this system, multiple pets react to the food I place on the screen. 
+  <br>Each pet follows only a few local rules. Even with this simple logic, the system can create visible patterns, such as pets grouping together 
+  <br>or changing their movement when food appears.
+    </p>
+
+    <h2>Process</h2>
+
+  <h3>Step 1: Build the pet system and basic motion</h3>
+    <p>
+  First, I created a pet class and spawned multiple pets in the environment. The initial goal was to make the system feel alive by giving each pet its own
+      <br>position and velocity. I used small random changes in velocity each frame, which creates a gentle wandering motion over time.
+    </p>
+
+    <code>
+      <pre>
+        this.vx += random(-0.04, 0.04);
+        this.vy += random(-0.04, 0.04);
+        
+        this.x += this.vx;
+        this.y += this.vy;
+      </pre>
+    </code>
+
+    <h3>Step 2: Add a simple relationship to create emergent behavior</h3>
+    <p>
+  Next, I added a simple relationship between the pets and the food. Each pet moves slightly toward the closest piece of food. The pet does not know what is 
+  <br>happening in the whole system. It only reacts to how far the food is from itself. When many pets follow this same rule, group movement and clustering appear 
+  <br>naturally, without directly programming group behavior.
+    </p>
+
+    <code>
+      <pre>
+        let dx = closest.x - this.x;
+        let dy = closest.y - this.y;
+
+        this.vx += dx * 0.00015;
+        this.vy += dy * 0.00015;
+      </pre>
+    </code>
+
+    <h3>Step 3: Add feedback through collision outcomes</h3>
+    <p>
+ Finally, I added feedback so the elements in the system can affect each other. When a pet reaches a piece of food, the food disappears and the pet becomes larger. 
+ <br>This creates an ongoing cycle: the user adds food, pets move toward it, and the system keeps changing as food is eaten and the pets grow.
+    </p>
+
+    <code>
+      <pre>
+        if (d < this.size / 2 + f.size / 2) {
+          f.eaten = true;
+          this.size += 3;
+        }
+      </pre>
+    </code>
+    <script src="sketch.js"></script>
   </body>
 </html>
