@@ -86,7 +86,6 @@ const vertexShader = /* glsl */`
     vec4 viewPos = viewMatrix * worldPos;
     vViewDir = normalize(-viewPos.xyz);
 
-    // 再丟進相機矩陣
     gl_Position = projectionMatrix * viewMatrix * worldPos;
   }
 `;
@@ -4248,11 +4247,7 @@ function animate() {
           const distSq = dx * dx + dy * dy + dz * dz;
           
           const nextSectionZ = sections[targetSectionInt].position.z;
-          
-          // Smooth distance-based transition for all sections
-          // Use generous thresholds to trigger transitions earlier for smoother interpolation
-          // This allows the continuous section interpolation to work more smoothly
-          // Increased thresholds help sections 1-3 transition as smoothly as later sections
+        
           const zDistance = Math.abs(camera.position.z - nextSectionZ);
           const shouldTransition = zDistance < 15 || distSq < 4.0;
           
@@ -4285,7 +4280,6 @@ function animate() {
     camera.lookAt(0, 1.5, camera.position.z - 10);
   }
 
-  // 每幀更新 UI / 可見範圍
   updateLevelUI();
   updateSectionVisibility();
 
@@ -4293,7 +4287,6 @@ function animate() {
 }
 animate();
 
-// === 視窗尺寸變化 ===
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
