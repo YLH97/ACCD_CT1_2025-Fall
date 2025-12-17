@@ -14,6 +14,27 @@
   </head>
 
   <body>
+    <h1>Non-linear movement</h1>
+    <h2>Problem</h2>
+    <p>During the development process, I struggled with how to make the image inside the moving sphere change only for a short moment when it touches the edge of the canvas. I wanted the pattern inside the sphere to react to the collision visually, instead of changing permanently or requiring user interaction. At first, I did not know how to trigger a temporary image change that would automatically return to the original image while keeping the animation smooth.</p>
+    <h2>Solution</h2>
+    <p>To solve this problem, I used a simple frame based countdown system. When the sphere hits the top edge of the canvas, I switch the displayed image by changing the <code>currentimage</code> variable and set a short countdown value. Inside the draw loop, the countdown decreases every frame. Once the countdown reaches zero, the image switches back to the original one. This approach allows the image change to feel responsive and temporary without interrupting the animation.</p>
+    <code>
+      <pre>
+        if (y - r < 0) {
+          y = r - (y - r);
+          currentimage = imagelebubu;
+          countDown = 16;
+        }
+        
+        if (countDown > 0) {
+          countDown--;
+        } else {
+          currentimage = imglebu;
+        }
+      </pre>
+    </code>
+
     <script src="sketch.js"></script>
   </body>
 </html>
