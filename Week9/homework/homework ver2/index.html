@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Documentation</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/addons/p5.sound.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js"></script>
+    <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style.css" />
+
+  </head>
+
+  <body>
+    <main>
+      <h1>Finish your interface</h1>
+      <p>Compared to the previous version where a soft rope was used to catch falling balls, this iteration turns the interaction into 
+        <br>a simple throwing game. Instead of catching the balls, the user now needs to put the balls into a basket to gain points.</p>
+
+      <div class="step">
+        <h2>Step 1: Add a basket and scoring system</h2>
+        <p>
+          In this step, I introduced a basket and a basic score counter to give the interaction a clear goal. When a ball successfully enters 
+          <br>the basket, it is counted as one point and removed from the system. The score is displayed at the top of the screen
+        </p>
+
+        <img src="img/a.png" alt="Step 1 screenshot" style= "width: 40%; height: auto;" />
+
+        <h3>Key implementation idea:</h3>
+        <ul>
+           <li>Build the basket using static physics bodies (left wall, right wall, bottom)</li>
+           <li>Check whether a ball's position is inside the basket area</li>
+           <li>Increase the score when a ball enters</li>
+        </ul>
+
+      <div class="step">
+        <h2>Step 2: Separate ball spawn position and basket location</h2>
+        <p>
+          In the earlier version, the balls fell near the catching area, making it possible to score without much effort. To fix this, 
+          <br>I moved the ball spawn point to the left side of the screen and placed the basket on the right side.</p>
+
+        <h3>Design change:</h3>
+        <ul>
+           <li>Balls spawn from the left side</li>
+           <li>The basket is fixed on the right side</li>
+        </ul>
+
+      <div class="step">
+        <h2>Step 3: Replace the soft rope with a rigid plank</h2>
+        <p>
+          In the final step, I replaced the soft, flexible rope with a rigid plank controlled by the thumb and index finger. 
+          <br>The plank does not deform and can be rotated and resized based on finger distance.
+          <br>This change transforms the interaction from “catching” to “hitting” or “redirecting.” Instead of holding the ball buy the rope, 
+          <br>the user can now actively "hit" the ball toward the basket, creating a more dynamic and game-like experience.
+        </p>
+
+        <img src="img/b.png" alt="Step 3 screenshot" style= "width: 40%; height: auto;"/>
+
+        <h3>Interaction logic:</h3>
+        <ul>
+           <li>Thumb and index finger control the plank’s position and angle</li>
+           <li>Finger distance controls the plank’s length</li>
+           <li>The rigid body allows stronger, more decisive interactions with the balls</li>
+        </ul>
+      </div>
+    </main>
+    <script src="sketch.js"></script>
+  </body>
+</html>
