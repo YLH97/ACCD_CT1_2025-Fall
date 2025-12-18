@@ -1,164 +1,147 @@
+let handPose;
 let video;
-let handposeModel;
-let predictions = [];
+let hands = [];
 
-const BALL_RADIUS = 12;
-const PADDLE_WIDTH = 140;
-const PADDLE_HEIGHT = 18;
+const THUMB_TIP = 4;
+const INDEX_FINGER_TIP = 8;
 
-let paddleX;
-let paddleY;
-let paddleTargetX;
-let paddleTargetY;
+const { Engine, Body, Bodies, Composite, Composites, Vector } = Matter;
 
-let ball;
-let score = 0;
-let lives = 3;
+let engine;
+let bridge;
+
+let num = 10;
+let radius = 10;
+let length = 25;
+
+let circles = [];
+
+function preload() {
+  handPose = ml5.handPose({ maxHands: 1, flipped: true });
+}
 
 function setup() {
   createCanvas(640, 480);
-  video = createCapture(VIDEO);
-  video.size(width, height);
+
+  video = createCapture(VIDEO, { flipped: true });
+  video.size(640, 480);
   video.hide();
 
-  paddleX = width / 2;
-  paddleY = height - 40;
-  paddleTargetX = paddleX;
-  paddleTargetY = paddleY;
+  handPose.detectStart(video, gotHands);
 
-  initBall();
-
-  handposeModel = ml5.handpose(video, () => {
-    console.log('Handpose model ready');
-  });
-  handposeModel.on('predict', (results) => {
-    predictions = results;
-  });
+  engine = Engine.create();
+  bridge = new Bridge(num, radius, length);
 }
 
 function draw() {
-  background(20);
-
-  // draw mirrored webcam feed
-  push();
-  translate(width, 0);
-  scale(-1, 1);
+  background(220);
+  Engine.update(engine);
   image(video, 0, 0, width, height);
-  pop();
 
-  updatePaddle();
-  updateBall();
-  drawBall();
-  drawPaddle();
-  drawScore();
-  drawHandOverlay();
 
-  if (lives <= 0) {
-    showGameOver();
-    noLoop();
-  }
-}
-
-function updatePaddle() {
-  if (predictions.length > 0 && video.width > 0 && video.height > 0) {
-    const hand = predictions[0];
-    // landmark 9 ~ base of middle finger, stable for paddle positioning
-    const [rawX, rawY] = hand.landmarks[9];
-    const canvasX = map(rawX, 0, video.width, 0, width);
-    const canvasY = map(rawY, 0, video.height, 0, height);
-    paddleTargetX = constrain(width - canvasX, PADDLE_WIDTH / 2, width - PADDLE_WIDTH / 2);
-    paddleTargetY = constrain(canvasY + 30, height / 2, height - 20);
-  } else {
-    // default paddle position when no hand detected
-    paddleTargetX = width / 2;
-    paddleTargetY = height - 30;
+  if (random() < 0.1) {
+    circles.push(new Circle());
   }
 
-  paddleX = lerp(paddleX, paddleTargetX, 0.35);
-  paddleY = lerp(paddleY, paddleTargetY, 0.2);
-}
+  for (let i = circles.length - 1; i >= 0; i--) {
+    circles[i].checkDone();
+    circles[i].display();
 
-function updateBall() {
-  ball.x += ball.vx;
-  ball.y += ball.vy;
-
-  if (ball.x < BALL_RADIUS || ball.x > width - BALL_RADIUS) {
-    ball.vx *= -1;
-    ball.x = constrain(ball.x, BALL_RADIUS, width - BALL_RADIUS);
+    if (circles[i].done) {
+      circles[i].removeCircle();
+      circles.splice(i, 1);
+    }
   }
 
-  if (ball.y < BALL_RADIUS) {
-    ball.vy *= -1;
-    ball.y = BALL_RADIUS;
-  }
+  if (hands.length > 0) {
+    let thumb = hands[0].keypoints[THUMB_TIP];
+    let index = hands[0].keypoints[INDEX_FINGER_TIP];
 
-  const withinPaddleWidth = ball.x > paddleX - PADDLE_WIDTH / 2 && ball.x < paddleX + PADDLE_WIDTH / 2;
-  const hittingPaddle = ball.y + BALL_RADIUS >= paddleY - PADDLE_HEIGHT / 2 && ball.y - BALL_RADIUS <= paddleY + PADDLE_HEIGHT / 2;
-
-  if (withinPaddleWidth && hittingPaddle && ball.vy > 0) {
-    ball.vy *= -1;
-    ball.y = paddleY - PADDLE_HEIGHT / 2 - BALL_RADIUS;
-    score += 1;
-    // change horizontal speed slightly for variety
-    ball.vx += random(-0.3, 0.3);
-    ball.vx = constrain(ball.vx, -6, 6);
-    ball.vy = constrain(ball.vy * 1.05, 3, 8);
-  }
-
-  if (ball.y > height + BALL_RADIUS) {
-    lives -= 1;
-    initBall();
-  }
-}
-
-function drawBall() {
-  fill(255, 200, 0);
-  noStroke();
-  circle(ball.x, ball.y, BALL_RADIUS * 2);
-}
-
-function drawPaddle() {
-  fill(0, 220, 255, 180);
-  rectMode(CENTER);
-  noStroke();
-  rect(paddleX, paddleY, PADDLE_WIDTH, PADDLE_HEIGHT, 6);
-}
-
-function drawScore() {
-  fill(255);
-  textSize(18);
-  textAlign(LEFT, TOP);
-  text(`Score: ${score}`, 12, 10);
-  text(`Lives: ${lives}`, 12, 32);
-}
-
-function drawHandOverlay() {
-  if (predictions.length === 0) return;
-
-  predictions[0].landmarks.forEach(([x, y]) => {
-    const mirroredX = width - map(x, 0, video.width, 0, width);
-    const mappedY = map(y, 0, video.height, 0, height);
-    fill(0, 255, 120, 160);
+    fill(0, 255, 0);
     noStroke();
-    circle(mirroredX, mappedY, 8);
-  });
+    circle(thumb.x, thumb.y, 10);
+    circle(index.x, index.y, 10);
+
+    bridge.bodies[0].position.x = thumb.x;
+    bridge.bodies[0].position.y = thumb.y;
+
+    bridge.bodies[bridge.bodies.length - 1].position.x = index.x;
+    bridge.bodies[bridge.bodies.length - 1].position.y = index.y;
+
+    bridge.display();
+  }
 }
 
-function showGameOver() {
-  fill(0, 180);
-  rect(0, 0, width, height);
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(32);
-  text('Game Over\nRefresh to play again', width / 2, height / 2);
+function gotHands(results) {
+  hands = results;
 }
 
-function initBall() {
-  const direction = random([ -1, 1 ]);
-  ball = {
-    x: width / 2,
-    y: height / 2,
-    vx: direction * random(3, 4.5),
-    vy: random(3, 5)
-  };
+class Bridge {
+  constructor(num, radius, length) {
+    this.bodies = [];
+    this.num = num;
+    this.radius = radius;
+    this.length = length;
+    this.initialize();
+  }
+
+  initialize() {
+    for (let i = 0; i < this.num; i++) {
+      this.bodies[i] = Bodies.circle(0, 0, this.radius);
+    }
+
+    this.chains = Composite.create();
+    Composite.add(this.chains, this.bodies);
+
+    Composites.chain(this.chains, 0, 0, 0, 0, {
+      stiffness: 1,
+      length: this.length
+    });
+
+    Composite.add(engine.world, [this.chains]);
+  }
+
+  display() {
+    noFill();
+    stroke(0);
+    strokeWeight(8);
+
+    beginShape();
+    for (let i = 0; i < this.bodies.length; i++) {
+      let x = this.bodies[i].position.x;
+      let y = this.bodies[i].position.y;
+      curveVertex(x, y);
+    }
+    endShape();
+  }
+}
+
+class Circle {
+  constructor() {
+    let x = width / 2;
+    let y = 40;
+
+    this.r = 10;
+    this.c = color(random(255), random(255), random(255));
+    this.done = false;
+
+    this.body = Bodies.circle(x, y, this.r, { restitution: 0.6 });
+    Body.setVelocity(this.body, Vector.create(random(-1, 1), random(-1, 1)));
+
+    Composite.add(engine.world, this.body);
+  }
+
+  display() {
+    fill(this.c);
+    noStroke();
+    ellipse(this.body.position.x, this.body.position.y, this.r * 2, this.r * 2);
+  }
+
+  checkDone() {
+    this.done = this.body.position.y > height + this.r * 2;
+  }
+
+  removeCircle() {
+    Composite.remove(engine.world, this.body);
+  }
 }

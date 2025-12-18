@@ -1,16 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/addons/p5.sound.min.js"></script>
-    <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Documentation</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.10.0/addons/p5.sound.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js"></script>
+    <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style.css" />
 
   </head>
+
   <body>
     <main>
+      <h1>Find your interface</h1>
+      <p>The idea of my project is to create a system where small balls fall from the top of the screen, 
+        <br>and the user can use a line formed by their thumb and index finger to catch them.</p>
+
+      <div class="step">
+        <h2>Step 1: Generate falling balls</h2>
+        <p>
+          I started by building a simple physics scene. The first goal was to confirm that circles could spawn and fall under gravity.
+          <br>At this stage, the circles are plain and there is no interaction yet.
+        </p>
+
+        <img src="img/1.png" alt="Step 1 screenshot" style= "width: 40%; height: auto;" />
+
+        <h4 class="note">
+          Key task: create a physics engine, spawn balls over time, and remove them after they fall off-screen.
+        </h4>
+
+        <code>
+          <pre>
+const { Engine, Bodies, Composite, Vector } = Matter;
+
+engine = Engine.create();
+
+if (random() &lt; 0.1) {
+  circles.push(new Circle());
+}
+
+this.body = Bodies.circle(x, y, this.r, { restitution: 0.6 });
+Body.setVelocity(this.body, Vector.create(random(-1, 1), random(-1, 1)));
+Composite.add(engine.world, this.body);
+          </pre>
+        </code>
+      </div>
+
+      <div class="step">
+        <h2>Step 2: Add a finger-controlled soft line (visual only)</h2>
+        <p>
+          Next, I added hand tracking (ml5 handPose) and used the thumb tip and index tip as two endpoints.
+          <br>I drew a smooth, flexible-looking line between these two points, but it was only a visual layer.
+          <br>Because the line was not part of the Matter.js physics world, the falling balls could not collide with it and would pass through.
+        </p>
+
+        <img src="img/2.png" alt="Step 2 screenshot" style= "width: 40%; height: auto;"/>
+
+        <h4 class="note">
+          Key task: detect the hand landmarks and use them to draw a soft line using curve vertices.
+        </h4>
+
+        <code>
+          <pre>
+const THUMB_TIP = 4;
+const INDEX_FINGER_TIP = 8;
+
+handPose.detectStart(video, gotHands);
+
+let thumb = hands[0].keypoints[THUMB_TIP];
+let index = hands[0].keypoints[INDEX_FINGER_TIP];
+
+beginShape();
+for (let p of ropePoints) {
+  curveVertex(p.x, p.y);
+}
+endShape();
+          </pre>
+        </code>
+      </div>
+
+      <div class="step">
+        <h2>Step 3: Make the soft line physical (catch balls) + colorful balls</h2>
+        <p>
+          I connected the line to Matter.js by building it as a chain of small physics bodies linked together.
+          <br>I controlled the two endpoints using the same finger tips, but now the line existed inside the physics simulation.
+          <br>This allowed the line to catch and bounce the falling balls. I also changed the balls to use random RGB colors so each ball feels unique.
+        </p>
+
+        <img src="img/3.png" alt="Step 3 screenshot" style= "width: 40%; height: auto;"/>
+
+        <h4 class="note">
+          Key tasks: create a physical chain with constraints, update endpoints from the hand, and randomize ball colors.
+        </h4>
+
+        <code>
+          <pre>
+Composites.chain(this.chains, 0, 0, 0, 0, {
+  stiffness: 1,
+  length: this.length
+});
+
+bridge.bodies[0].position.x = thumb.x;
+bridge.bodies[0].position.y = thumb.y;
+
+bridge.bodies[bridge.bodies.length - 1].position.x = index.x;
+bridge.bodies[bridge.bodies.length - 1].position.y = index.y;
+
+this.c = color(random(255), random(255), random(255));
+          </pre>
+        </code>
+      </div>
+      <h2>Final Outcome</h2>
     </main>
+
     <script src="sketch.js"></script>
   </body>
 </html>
