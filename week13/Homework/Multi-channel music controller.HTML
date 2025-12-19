@@ -12,41 +12,40 @@
   <section>
     <h2>Step 1  Build the physical controller</h2>
     <p>
-      I built a music controller by fixing four buttons and two potentiometers onto a paper box.
-      My first version failed (img4, img5). After improving the wiring and connections for both the
-      buttons and the potentiometers, I built a second version of the controller (img2, img3).
+      I decided to build a music controller by fixing four buttons and two potentiometers onto a paper box.
+      <br>My first version failed because of poor connections of the wires, they were not making good contact. 
+      <br>After improving the wiring and connections for both the buttons and the potentiometers, the second version was quite successful.
     </p>
 
     <div style="display:flex; gap: 8px; max-width:700px;">
         <figure style="flex:1; margin:0;">
-            <img src="img/4.jpg" alt="First version failed (img4)" style="width:100%; height:auto;">
-            <figcaption>First version_1</figcaption>
+            <img src="img/4.jpg" alt="version 1-1" style="width:100%; height:auto;">
+            <figcaption>Version 1-1</figcaption>
         </figure>
 
         <figure style="flex:1; margin:0;">
-            <img src="img/5.jpg" alt="First version failed (img5)" style="width:100%; height:auto;">
-            <figcaption>First version_2</figcaption>
+            <img src="img/5.jpg" alt="version 1-2" style="width:100%; height:auto;">
+            <figcaption>Version 1-2</figcaption>
         </figure>
     </div>
 
         <div style="display:flex; gap: 8px; max-width:900px;">
         <figure style="flex:1; margin:0;">
-            <img src="img/2.jpg" alt="First version failed (img4)" style="width:100%; height:auto;">
-            <figcaption>Second version_1</figcaption>
+            <img src="img/2.jpg" alt="version 2-1" style="width:100%; height:auto;">
+            <figcaption>Version 2-1</figcaption>
         </figure>
 
         <figure style="flex:1; margin:0;">
-            <img src="img/3.jpg" alt="First version failed (img5)" style="width:100%; height:auto;">
-            <figcaption>Second version_2</figcaption>
+            <img src="img/3.jpg" alt="version 2-2" style="width:100%; height:auto;">
+            <figcaption>Version 2-2</figcaption>
         </figure>
     </div>
 
   <section>
     <h2>Step 2  Connect ESP32 to Processing via Serial</h2>
     <p>
-      In Processing, I imported the Serial library and set up a serial connection at 115200 baud.
-      I also used <code>bufferUntil('\n')</code> so Processing reads data line-by-line.
-      The serial data format is: <strong>b1,b2,b3,b4,p1,p2</strong>.
+      In Processing, I imported the Serial library and set up a serial connection at 115200 baud. I also used <code>bufferUntil('\n')</code> 
+      <br>so Processing reads data line-by-line. The serial data format is: <strong>b1,b2,b3,b4,p1,p2</strong>.
     </p>
 
     <code><pre>import processing.serial.*;
@@ -71,10 +70,9 @@ void setup() {
   <section>
     <h2>Step 3  Map inputs to multi-channel playback control</h2>
     <p>
-      I loaded four audio loops, then implemented a toggle system:
-      pressing a button once starts looping the assigned sound, and pressing again stops it.
-      I also smoothed the potentiometer readings and mapped them to playback rate.
-      Pot1 controls the playback rate for channels 1 and 2, and pot2 controls the playback rate for channels 3 and 4.
+      I loaded four audio loops, then implemented a toggle system: pressing a button once starts looping the assigned sound, 
+      <br>and pressing again stops it. I also smoothed the potentiometer readings and mapped them to playback rate.
+      <br>Pot1 controls the playback rate for channels 1 and 2, and pot2 controls the playback rate for channels 3 and 4.
     </p>
 
     <h3>3.1 Load four audio loops</h3>
@@ -166,22 +164,21 @@ void serialEvent(Serial conn) {
   }
   lastPressed[idx] = pressed;
 }</pre></code>
-
-    <p>
-      Notes:
-      The toggle behavior avoids repeated triggering while the button is held down.
-      Pot1 and Pot2 control the playback speed independently for two pairs of channels.
-    </p>
   </section>
 
   <section>
-    <h2>Final video</h2>
+    <h2>Final Outcome</h2>
+    <p>
+      In the video, you can see how the buttons control the looping of different audio channels 
+      <ul>
+        <li>Each button toggles the playback of its assigned audio loop.</li>
+        <li>The toggle behavior avoids repeated triggering while the button is held down.</li>
+        <li>Pot1 and Pot2 control the playback speed independently for two pairs of channels.</li>
+      </ul>
+    </p>
     <video src="img/final.mp4" controls style="max-width:300%; height:auto;">
       Your browser does not support the video tag.
     </video>
-    <p>
-      File: <code>final.mp4</code>
-    </p>
   </section>
 </body>
 </html>
