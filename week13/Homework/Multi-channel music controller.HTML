@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi-channel music controller</title>
+</head>
+
+<body>
+  <h1>Multi-channel music controller</h1>
+
+  <section>
+    <h2>Step 1  Build the physical controller</h2>
+    <p>
+      I built a music controller by fixing four buttons and two potentiometers onto a paper box.
+      My first version failed (img4, img5). After improving the wiring and connections for both the
+      buttons and the potentiometers, I built a second version of the controller (img2, img3).
+    </p>
+
+    <div style="display:flex; gap: 8px; max-width:700px;">
+        <figure style="flex:1; margin:0;">
+            <img src="img/4.jpg" alt="First version failed (img4)" style="width:100%; height:auto;">
+            <figcaption>First version_1</figcaption>
+        </figure>
+
+        <figure style="flex:1; margin:0;">
+            <img src="img/5.jpg" alt="First version failed (img5)" style="width:100%; height:auto;">
+            <figcaption>First version_2</figcaption>
+        </figure>
+    </div>
+
+        <div style="display:flex; gap: 8px; max-width:900px;">
+        <figure style="flex:1; margin:0;">
+            <img src="img/2.jpg" alt="First version failed (img4)" style="width:100%; height:auto;">
+            <figcaption>Second version_1</figcaption>
+        </figure>
+
+        <figure style="flex:1; margin:0;">
+            <img src="img/3.jpg" alt="First version failed (img5)" style="width:100%; height:auto;">
+            <figcaption>Second version_2</figcaption>
+        </figure>
+    </div>
+
+  <section>
+    <h2>Step 2  Connect ESP32 to Processing via Serial</h2>
+    <p>
+      In Processing, I imported the Serial library and set up a serial connection at 115200 baud.
+      I also used <code>bufferUntil('\n')</code> so Processing reads data line-by-line.
+      The serial data format is: <strong>b1,b2,b3,b4,p1,p2</strong>.
+    </p>
+
+    <code><pre>import processing.serial.*;
+import processing.sound.*;
+
+// ====== Serial ======
+Serial connection;
+
+void setup() {
+  // ---- Serial ----
+  printArray(Serial.list());
+
+  // IMPORTANT: change portIndex to your ESP32 port if needed
+  int portIndex = 2;
+  if (Serial.list().length &lt;= portIndex) portIndex = 0;
+
+  connection = new Serial(this, Serial.list()[portIndex], 115200);
+  connection.bufferUntil('\n');
+}</pre></code>
+  </section>
+
+  <section>
+    <h2>Step 3  Map inputs to multi-channel playback control</h2>
+    <p>
+      I loaded four audio loops, then implemented a toggle system:
+      pressing a button once starts looping the assigned sound, and pressing again stops it.
+      I also smoothed the potentiometer readings and mapped them to playback rate.
+      Pot1 controls the playback rate for channels 1 and 2, and pot2 controls the playback rate for channels 3 and 4.
+    </p>
+
+    <h3>3.1 Load four audio loops</h3>
+    <code><pre>// ====== Audio files ======
+SoundFile techno1;
+SoundFile techno2;
+SoundFile techno3;
+SoundFile techno4;
+
+void setup() {
+  // ---- Load sounds (put WAV files in your Processing "data" folder) ----
+  techno1 = new SoundFile(this, "loop1.WAV");
+  techno3 = new SoundFile(this, "loop3.WAV");
+  techno4 = new SoundFile(this, "loop4.WAV");
+  techno2 = new SoundFile(this, "loop2.WAV");
+}</pre></code>
+
+    <h3>3.2 Read Serial data and smooth potentiometers</h3>
+    <code><pre>// ====== Toggle playback state ======
+boolean[] isLooping   = {false, false, false, false}; // currently looping?
+boolean[] lastPressed = {false, false, false, false}; // previous button state (for edge detect)
+
+// ====== Pot smoothing ======
+float pot1Smooth = 0;
+float pot2Smooth = 0;
+float alpha = 0.15; // smaller = smoother
+
+int pot1Raw = 0;
+int pot2Raw = 0;
+
+// ====== Mapped params ======
+float rateGroupA = 1.0; // pot1 -&gt; BTN1+BTN2
+float rateGroupB = 1.0; // pot2 -&gt; BTN3+BTN4
+
+void serialEvent(Serial conn) {
+  String incoming = conn.readStringUntil('\n');
+  if (incoming == null) return;
+
+  incoming = trim(incoming);
+  if (incoming.length() == 0) return;
+
+  String[] values = split(incoming, ',');
+  if (values.length &lt; 6) return;
+
+  // ----- Buttons -----
+  boolean b0Pressed = int(values[0]) == 1;
+  boolean b1Pressed = int(values[1]) == 1;
+  boolean b2Pressed = int(values[2]) == 1;
+  boolean b3Pressed = int(values[3]) == 1;
+
+  // ----- Pots -----
+  pot1Raw = constrain(int(values[4]), 0, 4095);
+  pot2Raw = constrain(int(values[5]), 0, 4095);
+
+  // ----- Smooth pots -----
+  pot1Smooth = alpha * pot1Raw + (1 - alpha) * pot1Smooth;
+  pot2Smooth = alpha * pot2Raw + (1 - alpha) * pot2Smooth;
+
+  // ----- Map pots to SAME parameter: playback rate (by groups) -----
+  rateGroupA = map(pot1Smooth, 0, 4095, 0.5, 2.0);
+  rateGroupB = map(pot2Smooth, 0, 4095, 0.5, 2.0);
+
+  // Group A: BTN1 + BTN2
+  techno1.rate(rateGroupA);
+  techno3.rate(rateGroupA);
+
+  // Group B: BTN3 + BTN4
+  techno4.rate(rateGroupB);
+  techno2.rate(rateGroupB);
+
+  // ----- Toggle loop -----
+  gateToggle(0, b0Pressed, techno1);
+  gateToggle(1, b1Pressed, techno3);
+  gateToggle(2, b2Pressed, techno4);
+  gateToggle(3, b3Pressed, techno2);
+}</pre></code>
+
+    <h3>3.3 Toggle playback (press once = ON, press again = OFF)</h3>
+    <code><pre>void gateToggle(int idx, boolean pressed, SoundFile s) {
+  // Edge detect: only act on "just pressed"
+  if (pressed && !lastPressed[idx]) {
+    if (!isLooping[idx]) {
+      s.loop();                 // ON
+      isLooping[idx] = true;
+    } else {
+      s.stop();                 // OFF
+      isLooping[idx] = false;
+    }
+  }
+  lastPressed[idx] = pressed;
+}</pre></code>
+
+    <p>
+      Notes:
+      The toggle behavior avoids repeated triggering while the button is held down.
+      Pot1 and Pot2 control the playback speed independently for two pairs of channels.
+    </p>
+  </section>
+
+  <section>
+    <h2>Final video</h2>
+    <video src="img/final.mp4" controls style="max-width:300%; height:auto;">
+      Your browser does not support the video tag.
+    </video>
+    <p>
+      File: <code>final.mp4</code>
+    </p>
+  </section>
+</body>
+</html>
