@@ -8,17 +8,16 @@
 </head>
 
 <body>
-  <h1>Multi-channel music controller</h1>
+  <h1>Multi-channel music controller🎵</h1>
 
   <section>
     <h2>Step 1  Build the physical controller</h2>
     <p>
-      I decided to build a music controller by fixing four buttons and two potentiometers onto a paper box.
-      <br>My first version failed because of poor connections of the wires, they were not making good contact. 
-      <br>After improving the wiring and connections for both the buttons and the potentiometers, the second version was quite successful.
+      I decided to build a music controller by fixing four buttons and two potentiometers onto a paper box. My first version failed because of poor connections of the wires, they were not making good contact.
+      After improving the wiring and connections for both the buttons and the potentiometers, the second version was quite successful.
     </p>
 
-    <div style="display:flex; gap: 8px; max-width:700px;">
+    <div style="display:flex; gap: 8px; max-width:900px;">
         <figure style="flex:1; margin:0;">
             <img src="img/4.jpg" alt="version 1-1" style="width:100%; height:auto;">
             <figcaption>Version 1-1</figcaption>
@@ -30,7 +29,7 @@
         </figure>
     </div>
 
-        <div style="display:flex; gap: 8px; max-width:900px;">
+    <div style="display:flex; gap: 8px; max-width:900px;">
         <figure style="flex:1; margin:0;">
             <img src="img/2.jpg" alt="version 2-1" style="width:100%; height:auto;">
             <figcaption>Version 2-1</figcaption>
@@ -42,118 +41,168 @@
         </figure>
     </div>
 
-  <section>
-    <h2>Step 2  Connect ESP32 to Processing via Serial</h2>
+    <p>The Version 2 is OK, the only issue was the wiring. So later in class, I asked the teacher for additional welding support, which made the connections more stable and reliable.(Thank u Maxim🥹)</p>
+    <div style="display:flex; gap: 8px; max-width:900px;">
+            <figure style="flex:1; margin:0;">
+            <img src="img/6.jpg" alt="version 2-2" style="width:50%; height:auto;">
+            <figcaption>Version 3</figcaption>
+        </figure>
+    </div>
+  </section>
+
+<section>
+    <h2>Step 2  Set up libraries and core structure</h2>
     <p>
-      In Processing, I imported the Serial library and set up a serial connection at 115200 baud. I also used <code>bufferUntil('\n')</code> 
-      <br>so Processing reads data line-by-line. The serial data format is: <strong>b1,b2,b3,b4,p1,p2</strong>.
+      I started by importing the Serial and Sound libraries in Processing. This project needs Serial input from my controller,
+      and SoundFile objects to load and loop multiple audio tracks. I also added a helper function <code>knobAngle()</code>
+      to convert potentiometer values into rotation angles for the UI knobs.
     </p>
 
     <code><pre>import processing.serial.*;
 import processing.sound.*;
 
-// ====== Serial ======
-Serial connection;
-
-void setup() {
-  // ---- Serial ----
-  printArray(Serial.list());
-
-  // IMPORTANT: change portIndex to your ESP32 port if needed
-  int portIndex = 2;
-  if (Serial.list().length &lt;= portIndex) portIndex = 0;
-
-  connection = new Serial(this, Serial.list()[portIndex], 115200);
-  connection.bufferUntil('\n');
+float knobAngle(float v, float vmin, float vmax) {
+  float a1 = -PI * 0.75;
+  float a2 =  PI * 0.75;
+  return map(constrain(v, vmin, vmax), vmin, vmax, a1, a2);
 }</pre></code>
   </section>
 
+  <hr />
+
   <section>
-    <h2>Step 3  Map inputs to multi-channel playback control</h2>
+    <h2>Step 3  Load multiple loops and define interaction states</h2>
     <p>
-      I loaded four audio loops, then implemented a toggle system: pressing a button once starts looping the assigned sound, 
-      <br>and pressing again stops it. I also smoothed the potentiometer readings and mapped them to playback rate.
-      <br>Pot1 controls the playback rate for channels 1 and 2, and pot2 controls the playback rate for channels 3 and 4.
+      I loaded four loop files as four separate channels. Each channel can be turned on/off using a physical button.
+      The idea is “press once = play, press again = stop”, I created a toggle state system using two arrays:
+      <code>isLooping[]</code> stores whether a channel is currently looping, and <code>lastPressed[]</code> stores the previous button state for edge detection.
     </p>
 
-    <h3>3.1 Load four audio loops</h3>
     <code><pre>// ====== Audio files ======
 SoundFile techno1;
 SoundFile techno2;
 SoundFile techno3;
 SoundFile techno4;
 
-void setup() {
-  // ---- Load sounds (put WAV files in your Processing "data" folder) ----
-  techno1 = new SoundFile(this, "loop1.WAV");
-  techno3 = new SoundFile(this, "loop3.WAV");
-  techno4 = new SoundFile(this, "loop4.WAV");
-  techno2 = new SoundFile(this, "loop2.WAV");
-}</pre></code>
-
-    <h3>3.2 Read Serial data and smooth potentiometers</h3>
-    <code><pre>// ====== Toggle playback state ======
+// ====== Toggle playback state ======
 boolean[] isLooping   = {false, false, false, false}; // currently looping?
 boolean[] lastPressed = {false, false, false, false}; // previous button state (for edge detect)
 
-// ====== Pot smoothing ======
-float pot1Smooth = 0;
-float pot2Smooth = 0;
-float alpha = 0.15; // smaller = smoother
+void setup() {
+  size(700, 240);
 
-int pot1Raw = 0;
-int pot2Raw = 0;
-
-// ====== Mapped params ======
-float rateGroupA = 1.0; // pot1 -&gt; BTN1+BTN2
-float rateGroupB = 1.0; // pot2 -&gt; BTN3+BTN4
-
-void serialEvent(Serial conn) {
-  String incoming = conn.readStringUntil('\n');
-  if (incoming == null) return;
-
-  incoming = trim(incoming);
-  if (incoming.length() == 0) return;
-
-  String[] values = split(incoming, ',');
-  if (values.length &lt; 6) return;
-
-  // ----- Buttons -----
-  boolean b0Pressed = int(values[0]) == 1;
-  boolean b1Pressed = int(values[1]) == 1;
-  boolean b2Pressed = int(values[2]) == 1;
-  boolean b3Pressed = int(values[3]) == 1;
-
-  // ----- Pots -----
-  pot1Raw = constrain(int(values[4]), 0, 4095);
-  pot2Raw = constrain(int(values[5]), 0, 4095);
-
-  // ----- Smooth pots -----
-  pot1Smooth = alpha * pot1Raw + (1 - alpha) * pot1Smooth;
-  pot2Smooth = alpha * pot2Raw + (1 - alpha) * pot2Smooth;
-
-  // ----- Map pots to SAME parameter: playback rate (by groups) -----
-  rateGroupA = map(pot1Smooth, 0, 4095, 0.5, 2.0);
-  rateGroupB = map(pot2Smooth, 0, 4095, 0.5, 2.0);
-
-  // Group A: BTN1 + BTN2
-  techno1.rate(rateGroupA);
-  techno3.rate(rateGroupA);
-
-  // Group B: BTN3 + BTN4
-  techno4.rate(rateGroupB);
-  techno2.rate(rateGroupB);
-
-  // ----- Toggle loop -----
-  gateToggle(0, b0Pressed, techno1);
-  gateToggle(1, b1Pressed, techno3);
-  gateToggle(2, b2Pressed, techno4);
-  gateToggle(3, b3Pressed, techno2);
+  techno1 = new SoundFile(this, "loop16.WAV");
+  techno3 = new SoundFile(this, "loop9.WAV");
+  techno4 = new SoundFile(this, "loop10.WAV");
+  techno2 = new SoundFile(this, "loop3.WAV");
 }</pre></code>
 
-    <h3>3.3 Toggle playback (press once = ON, press again = OFF)</h3>
+    <p>
+      After testing the initial setup, I realized that the physical button order on my device is different compared to my on-screen UI order, so
+      I added a mapping table <code>uiToSerial</code>. This allows me to keep the UI layout unchanged while matching real button inputs correctly.
+    </p>
+
+    <code><pre>int[] uiToSerial = {3, 2, 1, 0};</pre></code>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Step 4  Build a custom UI (pads + knobs)</h2>
+    <p>
+      I designed a simple DJ-style interface:
+      four circular pads represent the four channels (they glow when the channel is ON),
+      two rotary knobs visualize the two potentiometers.
+    </p>
+
+    <h3>4.1 Channel pads (glow ON/OFF)</h3>
+    <code><pre>// draw pads (4 channels)
+for (int i = 0; i &lt; 4; i++) {
+  boolean on = isLooping[i];
+
+  noStroke();
+  if (on) fill(90, 220, 160, 120);
+  else    fill(255, 255, 255, 18);
+  ellipse(cx[i] + padSize/2, padY + padSize/2, padSize + 18, padSize + 18);
+
+  if (on) fill(90, 220, 160);
+  else    fill(40);
+  ellipse(cx[i] + padSize/2, padY + padSize/2, padSize, padSize);
+
+  fill(220);
+  textAlign(CENTER, TOP);
+  text("CH " + (i+1), cx[i] + padSize/2, padY + padSize + 8);
+}</pre></code>
+
+    <h3>4.2 Rotary knobs (potentiometers)</h3>
+    <p>
+      To draw each knob, I mapped a pot value (0–4095) into an angle range and drew a pointer line.
+      This makes the potentiometer state easy to understand visually.
+    </p>
+
+    <code><pre>// pointer angle based on pot value
+float ang = knobAngle(v, vmin, vmax);
+float px = x + cos(ang) * r * 0.85;
+float py = y + sin(ang) * r * 0.85;
+
+stroke(250);
+strokeWeight(4);
+line(x, y, px, py);</pre></code>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Step 5  Read Serial data, smooth pots, map controls to sound</h2>
+    <p>
+      In <code>serialEvent()</code>, Processing reads one line at a time, then splits the incoming CSV string.
+      The first four values are buttons, and the last two values are potentiometers.
+      I apply smoothing to the pot values to reduce noise, then map them to playback rate:
+      pot1 controls Group A (CH1 + CH2) and pot2 controls Group B (CH3 + CH4).
+    </p>
+
+    <h3>5.1 Parse incoming data</h3>
+    <code><pre>String incoming = conn.readStringUntil('\n');
+incoming = trim(incoming);
+String[] values = split(incoming, ',');
+if (values.length &lt; 6) return;</pre></code>
+
+    <h3>5.2 Read buttons + apply mapping</h3>
+    <p>
+      I store button states into an array, then use <code>uiToSerial</code> to map physical order to UI order.
+      This ensures that when I press a real button, the correct UI pad lights up and the correct track toggles.
+    </p>
+
+    <code><pre>boolean[] pressed = new boolean[4];
+pressed[0] = int(values[0]) == 1;
+pressed[1] = int(values[1]) == 1;
+pressed[2] = int(values[2]) == 1;
+pressed[3] = int(values[3]) == 1;
+
+gateToggle(0, pressed[uiToSerial[0]], techno1);
+gateToggle(1, pressed[uiToSerial[1]], techno3);
+gateToggle(2, pressed[uiToSerial[2]], techno4);
+gateToggle(3, pressed[uiToSerial[3]], techno2);</pre></code>
+
+    <h3>5.3 Smooth potentiometers</h3>
+    <code><pre>pot1Raw = constrain(int(values[4]), 0, 4095);
+pot2Raw = constrain(int(values[5]), 0, 4095);
+
+pot1Smooth = alpha * pot1Raw + (1 - alpha) * pot1Smooth;
+pot2Smooth = alpha * pot2Raw + (1 - alpha) * pot2Smooth;</pre></code>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Step 6  Toggle loop playback (press once ON, press again OFF)</h2>
+    <p>
+      To avoid repeated triggering while a button is held down, I used edge detection:
+      only when the current input is pressed AND the previous input was not pressed, it counts as a “new press”.
+      Then I toggle between <code>loop()</code> and <code>stop()</code>.
+    </p>
+
     <code><pre>void gateToggle(int idx, boolean pressed, SoundFile s) {
-  // Edge detect: only act on "just pressed"
   if (pressed && !lastPressed[idx]) {
     if (!isLooping[idx]) {
       s.loop();                 // ON
@@ -167,14 +216,16 @@ void serialEvent(Serial conn) {
 }</pre></code>
   </section>
 
+  <hr />
+
   <section>
     <h2>Final Outcome</h2>
     <p>
       In the video, you can see how the buttons control the looping of different audio channels 
       <ul>
-        <li>Each button toggles the playback of its assigned audio loop.</li>
-        <li>The toggle behavior avoids repeated triggering while the button is held down.</li>
-        <li>Pot1 and Pot2 control the playback speed independently for two pairs of channels.</li>
+        <li>Four buttons toggle four looping tracks (on/off).</li>
+        <li>POT1 controls playback rate for CH1 + CH2, POT2 controls playback rate for CH3 + CH4.</li>
+        <li>A custom UI shows pads (loop states), knobs (pot values), and other values.</li>
       </ul>
     </p>
     <video src="img/final.mp4" controls style="max-width:300%; height:auto;">
